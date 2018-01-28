@@ -21,20 +21,21 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.android.sunshine.data.SunshinePreferences;
 import com.example.android.sunshine.utilities.NetworkUtils;
 import com.example.android.sunshine.utilities.OpenWeatherJsonUtils;
 
-import org.w3c.dom.Text;
-
 import java.net.URL;
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     private TextView mWeatherTV;
+    private TextView mErrorTV;
+    private ProgressBar mProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,8 +43,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_forecast);
 
         mWeatherTV = findViewById(R.id.tv_weather_data);
+        mErrorTV = findViewById(R.id.tv_error_message_display);
+        mProgressBar = findViewById(R.id.pb_loading_indicator);
 
-        fetchWeatherData();
+        loadWeatherData();
 
     }
 
@@ -59,13 +62,19 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
             mWeatherTV.setText("");
-            fetchWeatherData();
+            loadWeatherData();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     public class getWeatherDataAsync extends AsyncTask <String, Void, String[]> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mProgressBar.setVisibility(View.VISIBLE);
+        }
 
         @Override
         protected String[] doInBackground(String... strings) {
@@ -94,19 +103,34 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String[] weatherData) {
+            mProgressBar.setVisibility(View.INVISIBLE);
             if (weatherData != null) {
+                showWeatherDataView();
                 for (String weatherString : weatherData ) {
                     mWeatherTV.append(weatherString + "\n\n");
                 }
-
+            }
+            else {
+                showErrorMessage();
             }
 
         }
     }
 
-    private void fetchWeatherData() {
+    private void loadWeatherData() {
+        showWeatherDataView();
         String loc = SunshinePreferences.getPreferredWeatherLocation(this);
         new getWeatherDataAsync().execute(loc);
+    }
+
+    private void showWeatherDataView() {
+        mWeatherTV.setVisibility(View.VISIBLE);
+        mErrorTV.setVisibility(View.INVISIBLE);
+    }
+
+    private void showErrorMessage() {
+        mWeatherTV.setVisibility(View.INVISIBLE);
+        mErrorTV.setVisibility(View.VISIBLE);
     }
 
 
