@@ -15,12 +15,18 @@
  */
 package com.example.android.sunshine;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
+import com.example.android.sunshine.data.SunshinePreferences;
+import com.example.android.sunshine.utilities.NetworkUtils;
+import com.example.android.sunshine.utilities.OpenWeatherJsonUtils;
+
 import org.w3c.dom.Text;
 
+import java.net.URL;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -33,20 +39,54 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_forecast);
 
         mWeatherTV = findViewById(R.id.tv_weather_data);
-        String[] weatherData = {
-                "Today 3°C / -1°C",
-                "Tommorow 2°C / -3°C",
-                "Monday 5°C / 1°C",
-                "Tuesday 4°C / 0°C",
-                "Wednesday 3°C / 0°C",
-                "Thursday 2°C / 1°C",
-                "Friday 1°C / -2°C",
-        };
 
-        for (String tmpStr : weatherData)
-        {
-            mWeatherTV.append(tmpStr + '\n');
-        }
+        fetchWeatherData();
 
     }
+
+    public class getWeatherDataAsync extends AsyncTask <String, Void, String[]> {
+
+        @Override
+        protected String[] doInBackground(String... strings) {
+
+            if (strings.length == 0) {
+                return null;
+            }
+
+            String location = strings[0];
+            URL weatherRequestUrl = NetworkUtils.buildUrl(location);
+
+            try {
+                String jsonWeatherResponse = NetworkUtils
+                        .getResponseFromHttpUrl(weatherRequestUrl);
+
+                String[] simpleJsonWeatherData = OpenWeatherJsonUtils
+                        .getSimpleWeatherStringsFromJson(MainActivity.this, jsonWeatherResponse);
+
+                return simpleJsonWeatherData;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String[] weatherData) {
+            if (weatherData != null) {
+                for (String weatherString : weatherData ) {
+                    mWeatherTV.append(weatherString + "\n\n");
+                }
+
+            }
+
+        }
+    }
+
+    private void fetchWeatherData() {
+        String loc = SunshinePreferences.getPreferredWeatherLocation(this);
+        new getWeatherDataAsync().execute(loc);
+    }
+
+
 }
