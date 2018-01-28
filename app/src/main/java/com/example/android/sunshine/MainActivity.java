@@ -17,12 +17,36 @@ package com.example.android.sunshine;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
+
+    private TextView mWeatherTV;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forecast);
+
+        mWeatherTV = findViewById(R.id.tv_weather_data);
+        String[] weatherData = {
+                "Today 3°C / -1°C",
+                "Tommorow 2°C / -3°C",
+                "Monday 5°C / 1°C",
+                "Tuesday 4°C / 0°C",
+                "Wednesday 3°C / 0°C",
+                "Thursday 2°C / 1°C",
+                "Friday 1°C / -2°C",
+        };
+
+        for (String tmpStr : weatherData)
+        {
+            mWeatherTV.append(tmpStr + '\n');
+        }
+
     }
 }
