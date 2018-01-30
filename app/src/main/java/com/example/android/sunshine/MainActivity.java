@@ -18,6 +18,8 @@ package com.example.android.sunshine;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -33,7 +35,8 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView mWeatherTV;
+    private RecyclerView mRecycleView;
+    private ForecastAdapter mForecastAdapter;
     private TextView mErrorTV;
     private ProgressBar mProgressBar;
 
@@ -42,8 +45,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forecast);
 
-        mWeatherTV = findViewById(R.id.tv_weather_data);
+        mRecycleView = findViewById(R.id.recyclerview_forecast);
         mErrorTV = findViewById(R.id.tv_error_message_display);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        mRecycleView.setLayoutManager(layoutManager);
+        mRecycleView.setHasFixedSize(true);
+        mForecastAdapter = new ForecastAdapter();
+        mRecycleView.setAdapter(mForecastAdapter);
+
         mProgressBar = findViewById(R.id.pb_loading_indicator);
 
         loadWeatherData();
@@ -61,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            mWeatherTV.setText("");
+            mForecastAdapter.setWeatherData(null);
             loadWeatherData();
             return true;
         }
@@ -106,9 +116,7 @@ public class MainActivity extends AppCompatActivity {
             mProgressBar.setVisibility(View.INVISIBLE);
             if (weatherData != null) {
                 showWeatherDataView();
-                for (String weatherString : weatherData ) {
-                    mWeatherTV.append(weatherString + "\n\n");
-                }
+                mForecastAdapter.setWeatherData(weatherData);
             }
             else {
                 showErrorMessage();
@@ -124,12 +132,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showWeatherDataView() {
-        mWeatherTV.setVisibility(View.VISIBLE);
+        mRecycleView.setVisibility(View.VISIBLE);
         mErrorTV.setVisibility(View.INVISIBLE);
     }
 
     private void showErrorMessage() {
-        mWeatherTV.setVisibility(View.INVISIBLE);
+        mRecycleView.setVisibility(View.INVISIBLE);
         mErrorTV.setVisibility(View.VISIBLE);
     }
 
